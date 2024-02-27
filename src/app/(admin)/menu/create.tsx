@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, TextInput, Image } from 'react-native'
+import { View, Text, StyleSheet, TextInput, Image, Alert } from 'react-native'
 import React, { useState } from 'react'
 import Button from '@/components/Button'
 import { defaultPizzaImage } from '@/components/ProductListItem'
 import Colors from '@/constants/Colors'
 import * as ImagePicker from 'expo-image-picker'
-import { Stack } from 'expo-router'
+import { Stack, useLocalSearchParams } from 'expo-router'
 
 const CreateProductScreen = () => {
   const [name, setName] = useState('')
@@ -12,6 +12,27 @@ const CreateProductScreen = () => {
   const [errors, setErrors] = useState('')
   const [image, setImage] = useState<string | null>(null)
 
+  const { id } = useLocalSearchParams()
+
+  const isUpdating = !!id
+
+  const onDelete = () => {
+    console.warn('Deleting product...')
+  }
+
+  const confirmDelete = () => {
+    Alert.alert("Confirm", 'Are you sure you want to delete this product?', [
+      {
+        text: "Cancel",
+        style: "cancel"
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: onDelete
+      }
+    ])
+  }
 
   const resetFields = () => {
     setName('')
@@ -42,6 +63,21 @@ const CreateProductScreen = () => {
     resetFields()
   }
 
+  const onUpdate = () => {
+    if (!validateInput()) return
+
+    console.warn('Updating product...')
+    resetFields()
+  }
+
+  const onSubmit = () => {
+    if (isUpdating) {
+
+    } else {
+
+    }
+  }
+
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -60,7 +96,7 @@ const CreateProductScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Create product', headerTitleAlign: 'center' }} />
+      <Stack.Screen options={{ title: isUpdating ? 'Update Product' : 'Create product', headerTitleAlign: 'center' }} />
       <Image source={{ uri: image || defaultPizzaImage }} style={styles.image} />
       <Text onPress={pickImage} style={styles.textButton}>Select image</Text>
 
@@ -70,7 +106,8 @@ const CreateProductScreen = () => {
       <Text style={styles.label}>Price ($)</Text>
       <TextInput value={price} onChangeText={setPrice} placeholder='9.99' style={styles.input} keyboardType='numeric' />
       <Text style={{ color: 'red' }}>{errors}</Text>
-      <Button onPress={onCreate} text='Create' />
+      <Button onPress={onSubmit} text={isUpdating ? 'Update' : 'Create'} />
+      {isUpdating && <Text style={styles.deleteTextButton} onPress={confirmDelete}>Delete</Text>}
     </View>
   )
 }
@@ -102,7 +139,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.light.tint,
     marginVertical: 10,
-
+  },
+  deleteTextButton: {
+    alignSelf: 'center',
+    fontWeight: 'bold',
+    color: Colors.light.tint,
+    marginVertical: 10,
+    fontSize: 18,
   }
 })
 
