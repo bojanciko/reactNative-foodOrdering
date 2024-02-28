@@ -23,6 +23,7 @@ const ProductListItem = ({ product }: ProductListItemProps) => {
   );
 }
 
+
 export default ProductListItem
 
 const styles = StyleSheet.create({

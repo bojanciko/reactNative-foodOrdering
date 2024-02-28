@@ -34,7 +34,6 @@ const ProductDetailsScreen = () => {
       <Stack.Screen options={{ title: product?.name, headerTitleAlign: 'center' }} />
       <Image source={{ uri: product?.image || defaultPizzaImage }} style={{ width: '100%', aspectRatio: 1 }} />
       <Text>Select size</Text>
-      <Text></Text>
       <View style={styles.sizes}>
         {sizes.map(size => (
           <Pressable onPress={() => setSelectedSize(size)} style={[styles.size, { backgroundColor: selectedSize === size ? 'gainsboro' : 'white' }]} key={size}>
