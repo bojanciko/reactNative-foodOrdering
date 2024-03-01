@@ -1,23 +1,57 @@
-import { View, Text, StyleSheet, TextInput, Image, Alert } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, TextInput, Image, Alert, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import Button from '@/components/Button'
 import { defaultPizzaImage } from '@/components/ProductListItem'
 import Colors from '@/constants/Colors'
 import * as ImagePicker from 'expo-image-picker'
-import { Stack, useLocalSearchParams } from 'expo-router'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
+import { useDeleteProduct, useInsertProduct, useProduct, useUpdateProduct } from '@/api/products'
 
 const CreateProductScreen = () => {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [errors, setErrors] = useState('')
   const [image, setImage] = useState<string | null>(null)
+  const [id, setId] = useState<number>(-10)
+  const [deleting, setDeleting] = useState(false)
 
-  const { id } = useLocalSearchParams()
 
-  const isUpdating = !!id
+  const { id: idString } = useLocalSearchParams()
+
+  if (idString) {
+    setId(parseInt(typeof idString === 'string' ? idString : idString[0]))
+
+  }
+  const { mutate: insertProduct } = useInsertProduct()
+  const { mutate: updateProduct } = useUpdateProduct()
+  const { data: updatingProduct } = useProduct(id)
+  const { mutate: deleteProduct } = useDeleteProduct()
+
+
+  const router = useRouter()
+
+  const isUpdating = !!id && id > 0
+  console.log(id)
+
+
+  useEffect(() => {
+    if (updatingProduct) {
+      setName(updatingProduct.name)
+      setPrice(updatingProduct.price.toString())
+      setImage(updatingProduct.image)
+    }
+  }, [updatingProduct])
 
   const onDelete = () => {
+    if (!id) return
+    setDeleting(true)
     console.warn('Deleting product...')
+    deleteProduct(id, {
+      onSuccess: () => {
+        router.replace('/(admin)/')
+      }
+    })
+
   }
 
   const confirmDelete = () => {
@@ -60,21 +94,47 @@ const CreateProductScreen = () => {
     if (!validateInput()) return
 
     console.warn('Createing product...')
-    resetFields()
+
+    insertProduct({
+      name,
+      price: parseFloat(price),
+      image
+    },
+      {
+        onSuccess: () => {
+          resetFields()
+          router.back()
+        }
+      })
+
   }
 
   const onUpdate = () => {
     if (!validateInput()) return
 
-    console.warn('Updating product...')
+    updateProduct({
+      id,
+      name,
+      price: parseFloat(price),
+      image
+    },
+      {
+        onSuccess: () => {
+          resetFields()
+          router.back()
+        }
+      })
+
+
+
     resetFields()
   }
 
   const onSubmit = () => {
     if (isUpdating) {
-
+      // onUpdate()
     } else {
-
+      onCreate()
     }
   }
 
@@ -93,6 +153,15 @@ const CreateProductScreen = () => {
       setImage(result.assets[0].uri);
     }
   };
+
+  if (deleting) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', height: '100%' }]}>
+        <ActivityIndicator size="large" color={Colors.light.tint} />
+        <Text style={{ alignSelf: 'center', fontSize: 18 }}>Deleting {name}...</Text>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>

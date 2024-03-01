@@ -1,23 +1,37 @@
-import { View, Text, TextInput, StyleSheet } from 'react-native'
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { Link, Stack } from 'expo-router'
 import Button from '@/components/Button'
 import Colors from '@/constants/Colors'
+import { supabase } from '@/lib/supabase'
 
 const SignUp = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
+  const signUpWithEmail = async () => {
+    setLoading(true)
+    const { error } = await supabase.auth.signUp({
+      email,
+      password
+    })
+
+    if (error) {
+      Alert.alert(error.message)
+    }
+    setLoading(false)
+  }
 
   return (
     <View style={styles.container} >
       <Stack.Screen options={{ title: 'Sign Up' }} />
       <Text style={styles.label}>Email</Text>
-      <TextInput value={email} onChangeText={(setEmail)} inputMode='email' keyboardType='email-address' textContentType='emailAddress' placeholder='example@gmail.com' style={styles.input} />
+      <TextInput value={email} onChangeText={(setEmail)} inputMode='email' autoCapitalize='none' keyboardType='email-address' textContentType='emailAddress' placeholder='example@gmail.com' style={styles.input} />
 
       <Text style={styles.label}>Password</Text>
-      <TextInput secureTextEntry={true} value={password} onChangeText={(setPassword)} style={styles.input} />
-      <Button style={styles.button} onPress={() => { }} text='Create account' />
+      <TextInput secureTextEntry={true} value={password} autoCapitalize='none' onChangeText={(setPassword)} style={styles.input} />
+      <Button style={styles.button} disabled={loading} onPress={signUpWithEmail} text={loading ? 'Creating an account...' : 'Create an account'} />
       <Link style={styles.textButton} href={'/(auth)/sign-in'}>Sign In</Link>
     </View>
   )
