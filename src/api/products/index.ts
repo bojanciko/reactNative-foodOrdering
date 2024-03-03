@@ -37,7 +37,7 @@ export const useInsertProduct = () => {
         name: data.name,
         image: data.image,
         price: data.price
-      }).single()
+      }).select().single()
 
       if (error) {
         throw new Error(error.message)
@@ -61,7 +61,7 @@ export const useUpdateProduct = () => {
         name: data.name,
         image: data.image,
         price: data.price
-      }).eq('id', data.id).single()
+      }).eq('id', data.id).select().single()
 
       if (error) {
         throw new Error(error.message)
